@@ -41,6 +41,7 @@ class SimulatedIMU(IMU):
         self.pitch = 0.0
         self.yaw = 0.0
         self.start = time.time()
+        self.abs_error = 0
 
     def update(self):
         self.index = self.index + (1 * self.direction)
@@ -52,9 +53,15 @@ class SimulatedIMU(IMU):
             timestamp, self.roll, self.pitch, self.yaw = list(
                 map(float, self.data[self.index].split(","))
             )
+            roll_prev = self.roll
+            pitch_prev = self.pitch
+            yaw_prev = self.yaw
+            
             self.roll += np.random.normal(0, self.noise)
             self.pitch += np.random.normal(0, self.noise)
             self.yaw += np.random.normal(0, self.noise)
+
+            self.abs_error += abs(roll_prev-self.roll) + abs(pitch_prev-self.pitch) + abs(yaw_prev-self.yaw)
         except Exception as e:
             print(self.data[self.index])
             print(e)
@@ -73,6 +80,9 @@ class SimulatedIMU(IMU):
 
     def get_angles(self):
         return [self.roll, self.pitch, self.yaw]
+    
+    def get_abs_error(self):
+        return self.abs_error
 
 
 class ArduinoIMU(IMU):
